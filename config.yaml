@@ -1,0 +1,7 @@
+remote_path: "/Volumes/shred/shred_backup"
+ssh_user: "shred"
+ssh_host: "ais-shred-1"
+identity_file: "/tank/shred/.ssh/id_ed25519"
+local_path: "/tank/shred/shred_backup"
+days_threshold: 60
+log_path: "/opt/ShredBackupSync/log"
