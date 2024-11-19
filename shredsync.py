@@ -29,34 +29,44 @@ def get_remote_folders(remote_path, ssh_user, identity_file, days_threshold):
     remote_host, remote_dir = remote_path.split(':')
     command = [
         "ssh", "-i", identity_file, f"{ssh_user}@{remote_host}",
-        f"find {remote_dir} -mindepth 1 -maxdepth 1 -type d -printf '%P|%T@\n'"
+        f"gfind {remote_dir} -mindepth 1 -maxdepth 1 -type d -printf '%P|%T@\n'"
     ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        logging.error(f"Error retrieving remote folder list: {result.stderr.strip()}")
-        raise RuntimeError("Failed to retrieve remote folders.")
-    
-    logging.debug(f"Raw output from find command: {result.stdout.strip()}")
-    
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error retrieving remote folder list: {e.stderr.strip()}")
+        raise RuntimeError("Failed to retrieve remote folders.") from e
+
+    raw_output = result.stdout.strip()
+    logging.debug(f"Raw output from find command: {raw_output}")
+    print("DEBUG: Raw output from find command:")
+    print(raw_output)
+
     now = datetime.now().timestamp()
     folders = []
 
-    for line in result.stdout.strip().split('\n'):
+    for line in raw_output.splitlines():
         line = line.strip()
-        if not line or '|' not in line:  # Skip empty or improperly formatted lines
-            logging.warning(f"Skipping invalid line: {line}")
+        if not line:
+            logging.debug("Skipping empty line in output.")
             continue
+
+        if '|' not in line:
+            logging.warning(f"Unexpected line format: {line}")
+            continue
+
         try:
             name, mod_time = line.split('|', 1)
             mod_time = float(mod_time)
             if (now - mod_time) > (days_threshold * 86400):  # Older than threshold
                 folders.append(name)
         except ValueError as e:
-            logging.warning(f"Failed to parse line: {line}. Error: {str(e)}")
+            logging.warning(f"Error parsing line: {line}. Exception: {str(e)}")
             continue
 
     logging.info(f"Retrieved {len(folders)} folders.")
     return folders
+    
     
 # Ensure destination path structure exists
 def ensure_path_structure(local_path, folder):
