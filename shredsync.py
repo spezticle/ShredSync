@@ -42,10 +42,9 @@ def get_remote_folders(remote_path, ssh_user, identity_file, days_threshold):
     folders = []
 
     for line in result.stdout.strip().split('\n'):
-        if not line.strip():  # Skip empty lines
-            continue
-        if '|' not in line:  # Validate format
-            logging.warning(f"Skipping unexpected line format: {line}")
+        line = line.strip()
+        if not line or '|' not in line:  # Skip empty or improperly formatted lines
+            logging.warning(f"Skipping invalid line: {line}")
             continue
         try:
             name, mod_time = line.split('|', 1)
@@ -54,6 +53,7 @@ def get_remote_folders(remote_path, ssh_user, identity_file, days_threshold):
                 folders.append(name)
         except ValueError as e:
             logging.warning(f"Failed to parse line: {line}. Error: {str(e)}")
+            continue
 
     logging.info(f"Retrieved {len(folders)} folders.")
     return folders
