@@ -24,29 +24,40 @@ def initialize_logging(log_path):
     )
     return log_file
 
-# Get the list of folders
 def get_remote_folders(remote_path, ssh_user, identity_file, days_threshold):
     logging.info("Retrieving remote folder list...")
+    remote_host, remote_dir = remote_path.split(':')
     command = [
-        "ssh", "-i", identity_file, f"{ssh_user}@{remote_path.split(':')[0]}",
-        f"find {remote_path.split(':')[1]} -mindepth 1 -maxdepth 1 -type d -printf '%P|%T@\n'"
+        "ssh", "-i", identity_file, f"{ssh_user}@{remote_host}",
+        f"find {remote_dir} -mindepth 1 -maxdepth 1 -type d -printf '%P|%T@\n'"
     ]
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
         logging.error(f"Error retrieving remote folder list: {result.stderr.strip()}")
         raise RuntimeError("Failed to retrieve remote folders.")
     
+    logging.debug(f"Raw output from find command: {result.stdout.strip()}")
+    
     now = datetime.now().timestamp()
     folders = []
+
     for line in result.stdout.strip().split('\n'):
-        name, mod_time = line.split('|')
-        mod_time = float(mod_time)
-        if (now - mod_time) > (days_threshold * 86400):  # Older than threshold
-            folders.append(name)
+        if not line.strip():  # Skip empty lines
+            continue
+        if '|' not in line:  # Validate format
+            logging.warning(f"Skipping unexpected line format: {line}")
+            continue
+        try:
+            name, mod_time = line.split('|', 1)
+            mod_time = float(mod_time)
+            if (now - mod_time) > (days_threshold * 86400):  # Older than threshold
+                folders.append(name)
+        except ValueError as e:
+            logging.warning(f"Failed to parse line: {line}. Error: {str(e)}")
 
     logging.info(f"Retrieved {len(folders)} folders.")
     return folders
-
+    
 # Ensure destination path structure exists
 def ensure_path_structure(local_path, folder):
     components = folder.split('-')
