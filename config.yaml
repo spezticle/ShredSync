@@ -1,7 +1,12 @@
 remote_path: "/Volumes/shred/shred_backup"
 ssh_user: "shred"
-ssh_host: "ais-shred-1"
+ssh_host: "ais-shred-1.skydiveaz.com"
+ssh_port: "22"
 identity_file: "/tank/shred/.ssh/id_ed25519"
 local_path: "/tank/shred/shred_backup"
 days_threshold: 60
 log_path: "/opt/ShredBackupSync/log"
+log_dir_permission: 0o775  # Permissions for log directory
+log_file_permission: 0o664  # Permissions for log file
+umask: "002"  # Octal value for umask (directories: 0775, files: 0664)
+
