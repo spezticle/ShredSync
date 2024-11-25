@@ -47,8 +47,8 @@ Modules
 
 The following Python modules must be installed:
 
-	•	paramiko (for SSH communication)
-	•	pandas (for data handling and processing)
+	•	paramiko (for SSH communication) # not currently used. future usage
+	•	pandas (for data handling and processing) # not currently used. future usage
 	•	pyyaml (for reading configuration files)
 	•	logging (for application logging)
 	•	os (for file system operations)
