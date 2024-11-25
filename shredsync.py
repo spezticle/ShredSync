@@ -9,26 +9,37 @@ import stat
 from datetime import datetime
 
 CONFIG_FILE = "/opt/ShredBackupSync/config.yaml"
-HISTORY_FILE = "/opt/ShredBackupSync/processed_folders.log"
 
 def load_config(config_file):
     with open(config_file, "r") as file:
         return yaml.safe_load(file)
 
-def initialize_logging(log_path, log_dir_permission, log_file_permission):
-#   Initialize logging with directory and file permission checks.
-#   Ensure log_path exists with proper permissions, 
-#   create log file if necessary, and ensure it has correct permissions.
+def initialize_logging(log_path, log_dir_permission, log_file_permission, log_file_format, log_format):
+    """
+    Initialize logging with directory and file permission checks.
+    Ensure log_path exists with proper permissions, create log file if necessary, 
+    and ensure it has correct permissions.
+
+    Args:
+        log_path (str): Directory path for log files.
+        log_dir_permission (str): Directory permissions in octal format (e.g., '0755').
+        log_file_permission (str): File permissions in octal format (e.g., '0644').
+        log_file_format (str): Date format for the log file name (e.g., '%Y%m%d').
+        log_format (str): Logging format for log messages.
+    """
+    import os, stat, logging, sys
+    from datetime import datetime
 
     # Convert permissions from string to integer
     log_dir_permission = int(log_dir_permission, 8)
     log_file_permission = int(log_file_permission, 8)
+
     # Ensure the log directory exists
     if not os.path.exists(log_path):
         try:
             os.makedirs(log_path, mode=log_dir_permission)
         except Exception as e:
-            sys.exit(1)
+            sys.exit(f"Failed to create log directory: {e}")
     else:
         # Check and fix permissions for the log directory
         current_dir_permissions = stat.S_IMODE(os.stat(log_path).st_mode)
@@ -36,9 +47,12 @@ def initialize_logging(log_path, log_dir_permission, log_file_permission):
             try:
                 os.chmod(log_path, log_dir_permission)
             except Exception as e:
-                sys.exit(1)
+                sys.exit(f"Failed to set permissions for log directory: {e}")
 
-    log_file = os.path.join(log_path, f"{datetime.now().strftime('%Y%m%d')}.log")
+    # Create log file with specified format
+#   log file as date.     
+#    log_file = os.path.join(log_path, f"{datetime.now().strftime(log_file_format)}.log")
+    log_file = os.path.join(log_path, log_file_format)
     if not os.path.exists(log_file):
         try:
             # Create an empty file with proper permissions
@@ -46,7 +60,7 @@ def initialize_logging(log_path, log_dir_permission, log_file_permission):
                 pass
             os.chmod(log_file, log_file_permission)
         except Exception as e:
-            sys.exit(1)
+            sys.exit(f"Failed to create log file: {e}")
     else:
         # Check and fix permissions for the log file
         current_file_permissions = stat.S_IMODE(os.stat(log_file).st_mode)
@@ -54,12 +68,13 @@ def initialize_logging(log_path, log_dir_permission, log_file_permission):
             try:
                 os.chmod(log_file, log_file_permission)
             except Exception as e:
-                sys.exit(1)
+                sys.exit(f"Failed to set permissions for log file: {e}")
 
+    # Configure logging
     logging.basicConfig(
         filename=log_file,
         level=logging.DEBUG,
-        format="%(asctime)s - %(levelname)s - %(message)s"
+        format=log_format
     )
     return log_file
 
@@ -215,7 +230,6 @@ def set_global_umask(umask_value):
         umask = int(umask_value, 8)  # Convert the octal string to an integer
         os.umask(umask)
         logging.info(f"Set global umask to {oct(umask)}")
-        print(f"Global umask set to {oct(umask)}")
     except ValueError as e:
         logging.error(f"Invalid umask value provided in config: {umask_value}. Error: {e}")
         print(f"Error: Invalid umask value '{umask_value}' in config.")
@@ -224,10 +238,18 @@ def set_global_umask(umask_value):
 # Begin main
 def main():
     config = load_config(CONFIG_FILE)
+
+    # Retrieve log-related configuration
     log_path = config["log_path"]
-    log_dir_permission = config.get("log_dir_permission", 0o755)
-    log_file_permission = config.get("log_file_permission", 0o644)
-    log_file = initialize_logging(log_path, log_dir_permission, log_file_permission)
+    log_dir_permission = config.get("log_dir_permission", "0755")
+    log_file_permission = config.get("log_file_permission", "0644")
+    log_file_format = config.get("log_file_format", "%Y%m%d")
+    log_format = config.get("log_format", "%(asctime)s - %(levelname)s - %(message)s")
+
+    # Initialize logging
+    log_file = initialize_logging(log_path, log_dir_permission, log_file_permission, log_file_format, log_format)
+
+    # Retrieve other configuration parameters
     umask_value = config.get("umask", "022")
     set_global_umask(umask_value)
 
@@ -238,6 +260,7 @@ def main():
     ssh_port = config["ssh_port"]
     identity_file = config["identity_file"]
     days_threshold = config["days_threshold"]
+    processed_folders = load_history(config["history_file"])
 
     logging.info("Starting ShredBackupSync script.")
     if len(sys.argv) < 2:
@@ -247,8 +270,6 @@ def main():
     action = sys.argv[1].lower()
     verify = "verify" in sys.argv
     delete = "delete" in sys.argv
-
-    processed_folders = load_history(HISTORY_FILE)
 
     try:
         folders = get_remote_folders(remote_path, ssh_user, ssh_host, ssh_port, identity_file)
@@ -285,7 +306,6 @@ def main():
         logging.error(f"An error occurred: {e}")
     finally:
         logging.shutdown()
-        print(f"Log written to {log_file}")
 
 if __name__ == "__main__":
     main()

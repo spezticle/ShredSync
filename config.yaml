@@ -8,5 +8,6 @@ days_threshold: 60
 log_path: "/opt/ShredBackupSync/log"
 log_dir_permission: 0o775  # Permissions for log directory
 log_file_permission: 0o664  # Permissions for log file
+log_file_format: "shredsync" # .log appened in script action
 umask: "002"  # Octal value for umask (directories: 0775, files: 0664)
-
+history_file: "/opt/ShredBackupSync/log/processed_folders.log"
