@@ -1,4 +1,4 @@
-# config2.yaml 1.1
+# config2.yaml 1.2
 
 global:
   # Configuration file
@@ -14,7 +14,7 @@ global:
     help: "Path to the shredded source folder."
     command_argument: "--shredded-source"
     short_option: "-d"  # Short option for shredded source folder
-  shredded_source-recursive:
+  shredded_source_recursive:
     value: "no"
     help: "Whether to search the shredded source folder recursively."
     command_argument: "--shredded-source-recursive"
@@ -24,7 +24,7 @@ global:
     help: "Path to the import source folder."
     command_argument: "--import-source"
     short_option: "-i"  # Short option for import source folder
-  import_source-recursive:
+  import_source_recursive:
     value: "no"
     help: "Whether to search the import source folder recursively."
     command_argument: "--import-source-recursive"
@@ -71,7 +71,7 @@ global:
 
   # Destination and Database
   destination:
-    value: "/spindles/shred/shred_backup"
+    value: "/spindles/shred/ShredTV"
     help: "Path to the processing output."
     command_argument: "--destination"
     short_option: "-t"  # Short option for destination
@@ -89,7 +89,6 @@ global:
     short_option: "-u"  # Short option for umask
 
 shredsync:
-  # Log and File Settings
   logfile:
     value: "shredsync.log"
     help: "ShredSync log file."
@@ -137,9 +136,9 @@ shredmatch:
     value: "shredmatch.log"
     help: "ShredMatch log file."
     command_argument: "--shredmatch-logfile"
-    short_option: "-s"  # Short option for shredmatch logfile (unique)
+    short_option: "-s"  # Short option for shredmatch logfile
   db_file:
     value: "shredmatch.db"
     help: "Database file for ShredMatch."
     command_argument: "--shredmatch-db-file"
-    short_option: "-m"  # Short option for shredmatch database file (unique)
+    short_option: "-m"  # Short option for shredmatch database file
