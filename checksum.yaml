@@ -1,0 +1,13 @@
+# Remote source path
+remote_path: "/spindles/shred/old_shred_backup"
+
+# Local destination path
+destination_path: "/spindles/shred/shred_backup"
+
+# Logging configuration
+log_path: "/spindles/shred/ShredSync2.0/log"
+log_file_format: "checksum.log"  # Log file name
+log_format: "%(asctime)s - %(levelname)s - %(message)s"  # Log message format
+
+# History file to track processed folders
+history_file: "/spindles/shred/ShredSync2.0/log/checksum_processed_folders.log"

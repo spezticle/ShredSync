@@ -1,13 +1,58 @@
-remote_path: "/Volumes/shred/shred_backup"
-ssh_user: "shred"
-ssh_host: "ais-shred-1.skydiveaz.com"
-ssh_port: "22"
-identity_file: "/tank/shred/.ssh/id_ed25519"
-local_path: "/tank/shred/shred_backup"
+shredded_source: "/nfs/shred/cache"
+shredded_source-recursive: "no"
+import_source: "/nfs/shred/backup/shred_backup"
+import_source-recursive: "no"
+shred_log_source: "/nfs/shred/cache/logs/"
+destination: "/spindles/shred/shred_backup"
+shredsync_logpath: "/spindles/shred/log"
+shredsync_logfile: "shredsync.log"
+shredmatch_logfile: "shredmatch.log"
+shredmatch_db_file: "shredmatch.db"
+log_format: "%(asctime)s - %(levelname)s - %(message)s"  # Logging format
+log_dir_permission: "0755"  # Permissions for the log directory
+log_file_permission: "0644"  # Permissions for the log file
+history_file: "/spindles/shred/log/processed_folders.log"
+
+
+# Default action: "rsync" or "move"
+action: "rsync"
+
+# Threshold for deleting old folders (only applies for "rsync" action)
 days_threshold: 60
-log_path: "/opt/ShredBackupSync/log"
-log_dir_permission: 0o775  # Permissions for log directory
-log_file_permission: 0o664  # Permissions for log file
-log_file_format: "shredsync" # .log appened in script action
-umask: "002"  # Octal value for umask (directories: 0775, files: 0664)
-history_file: "/opt/ShredBackupSync/log/processed_folders.log"
+
+# History file to track processed folders
+
+# Umask for directory/file creation (directories: 0775, files: 0664)
+umask: "002"
+
+# Rsync options (used if action is "rsync")
+# Rsync Options (Customizable based on your use case)
+# Note: Only include the options you want to use in the "rsync_options" value below.
+
+# -a: Archive mode. Preserves symbolic links, permissions, modification times, group, and device files.
+# -v: Verbose output. Displays detailed information about the files being synced.
+# -z: Compresses file data during the transfer for faster performance over slower networks.
+# -P: Combines --progress and --partial to show progress during transfer and allow resuming incomplete transfers.
+# --progress: Shows detailed progress of each file transfer.
+# --remove-source-files: Removes successfully transferred files from the source.
+# --delete: Deletes extraneous files from the destination that are not present in the source.
+# --delete-after: Deletes files in the destination only after the transfer is complete.
+# --exclude=PATTERN: Excludes files or directories matching a pattern (e.g., --exclude="*.tmp").
+# --include=PATTERN: Includes files or directories matching a pattern, even if they match an exclude rule.
+# --ignore-existing: Skips files that already exist in the destination.
+# --update: Skips files that are newer in the destination than in the source.
+# --copy-links: Copies the targets of symbolic links instead of the links themselves.
+# --link-dest=DIR: Hard-links to files in DIR when unchanged, to save space.
+# --checksum: Transfers files based on checksum comparison instead of modification times and sizes.
+# --bwlimit=RATE: Limits the bandwidth used during transfer (e.g., --bwlimit=1000 for ~1 MB/s).
+# --timeout=SECONDS: Cancels transfers that stall for the specified time.
+# --human-readable: Displays file sizes in a human-readable format (e.g., 1K, 234M, 2G).
+# --itemize-changes: Outputs a summary of the changes made for each file.
+# --dry-run: Simulates the transfer without making any changes (useful for testing).
+
+# Example Config:
+# rsync_options: "-avzP --remove-source-files --delete-after --progress"
+rsync_options: "-ahvP --info=progress2"
+
+# Move options (used if action is "move")
+move_options: "default"  # Reserved for potential future use
