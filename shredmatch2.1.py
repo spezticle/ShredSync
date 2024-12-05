@@ -1,5 +1,5 @@
 #!/spindles/shred/.venv/shredsync/bin/python
-# ShredMatch 2.2
+# ShredMatch 2.2 #
 
 import os
 import re
