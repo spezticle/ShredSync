@@ -1,5 +1,5 @@
 #!/spindles/shred/.venv/shredsync/bin/python
-# ShredMatch 2.1
+# ShredMatch 2.2
 
 import os
 import re
@@ -66,13 +66,25 @@ def parse_arguments(config):
 
 def setup_logging(log_file, log_dir_permission, log_file_permission, log_format):
     """Set up logging with the given parameters."""
-    log_dir = os.path.dirname(log_file)
-    os.makedirs(log_dir, mode=int(log_dir_permission, 8), exist_ok=True)
-    if not os.path.exists(log_file):
-        with open(log_file, 'a'):
-            os.chmod(log_file, int(log_file_permission, 8))
-    logging.basicConfig(filename=log_file, level=logging.INFO, format=log_format)
-    logging.info("Logging setup complete.")
+    try:
+        log_dir = os.path.dirname(log_file)
+        os.makedirs(log_dir, mode=int(log_dir_permission, 8), exist_ok=True)
+
+        # Ensure log file exists or create it
+        if not os.path.exists(log_file):
+            with open(log_file, 'a'):
+                os.chmod(log_file, int(log_file_permission, 8))
+
+        logging.basicConfig(
+            filename=log_file,
+            level=logging.DEBUG,  # Use DEBUG for detailed information
+            format=log_format
+        )
+        logging.info("Logging setup complete.")
+    except Exception as e:
+        print(f"Failed to set up logging: {e}")
+        sys.exit(1)
+
 
 
 def setup_database(db_file, db_path):
